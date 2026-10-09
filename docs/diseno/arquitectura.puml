@@ -1,0 +1,52 @@
+@startuml
+!include estilo.iuml
+
+skinparam nodesep 25
+skinparam ranksep 40
+
+package "Aplicación móvil Android (Java)" as APP {
+  package "Capa de presentación" {
+    component "Actividades y fragmentos\n(pantallas por rol)" as UI
+  }
+  package "Capa de lógica de presentación" {
+    component "ViewModel\n(estado de cada pantalla)" as VM
+  }
+  package "Capa de datos" {
+    component "Repositorios" as REPO
+    component "Cliente HTTP\n(Retrofit)" as HTTP
+    component "Base local Room\n(caché y cola de\noperaciones pendientes)" as ROOM
+    component "Sincronizador\n(WorkManager)" as SYNC
+    component "Gestor de sesión\n(token cifrado)" as SES
+  }
+}
+
+package "API REST (PHP 8 sobre Apache - XAMPP)" as API {
+  component "Enrutador\n(index.php)" as RT
+  component "Autenticación y\ncontrol de acceso por rol" as AUTH
+  component "Controladores\n(auth, usuarios, repuestos,\nmovimientos, alertas, proveedores,\nsolicitudes, informes)" as CTRL
+  component "Servicios\n(reglas del negocio,\nsincronización, estimación)" as SRV
+  component "Acceso a datos\n(PDO, consultas preparadas)" as DAO
+}
+
+database "MariaDB / MySQL\nvirutex_inventario" as DB {
+  component "Tablas y restricciones" as T
+  component "Disparadores\n(stock, inmutabilidad,\nalertas)" as TR
+  component "Vistas y procedimientos\n(inventario, historial,\nestimación, informes)" as V
+}
+
+UI --> VM
+VM --> REPO
+REPO --> HTTP
+REPO --> ROOM
+SYNC --> ROOM
+SYNC --> HTTP
+HTTP --> SES
+HTTP --> RT : HTTPS / JSON\nred interna
+RT --> AUTH
+AUTH --> CTRL
+CTRL --> SRV
+SRV --> DAO
+DAO --> T : usuario app_inventario\n(privilegios mínimos)
+DAO --> V
+T --> TR
+@enduml

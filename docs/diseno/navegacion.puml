@@ -1,0 +1,51 @@
+@startuml
+!include estilo.iuml
+skinparam state {
+  BackgroundColor #FFFFFF
+  BorderColor #1F4E79
+  FontSize 11
+}
+hide empty description
+left to right direction
+state "P-01 Inicio de sesión" as P01
+state "P-02 Menú principal\n(según rol)" as P02
+state "Técnico" as TEC {
+  state "P-03 Consulta de inventario" as P03
+  state "P-04 Detalle del repuesto" as P04
+  state "P-07 Registrar salida\n(3 pasos)" as P07
+  state "P-08 Pendientes y conflictos" as P08
+}
+state "Almacén" as ALM {
+  state "P-05 Registrar repuesto" as P05
+  state "P-06 Registrar entrada\n(3 pasos)" as P06
+  state "P-12 Proveedores" as P12
+}
+state "Supervisor" as SUP {
+  state "P-10 Alertas" as P10
+  state "P-11 Estimación" as P11
+  state "P-09 Historial y ajustes" as P09
+  state "P-13 Solicitudes" as P13
+  state "P-14 Informes" as P14
+  state "P-15 Usuarios" as P15
+}
+[*] --> P01
+P01 --> P02 : credenciales válidas
+P02 --> P03
+P03 --> P04 : elige repuesto
+P04 --> P07 : registrar salida
+P02 --> P07
+P07 --> P08 : sin conexión
+P02 --> P08
+P02 --> P05
+P02 --> P06
+P04 --> P06 : registrar entrada
+P05 --> P04 : repuesto creado
+P02 --> P12
+P02 --> P10
+P10 --> P13 : crear solicitud
+P02 --> P11
+P04 --> P09 : ver historial
+P02 --> P13
+P02 --> P14
+P02 --> P15
+@enduml

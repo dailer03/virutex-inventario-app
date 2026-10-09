@@ -1,0 +1,174 @@
+@startuml
+!include estilo.iuml
+hide circle
+skinparam linetype ortho
+skinparam nodesep 40
+skinparam ranksep 55
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #1F4E79
+  HeaderBackgroundColor #EAF1F8
+  FontSize 11
+  AttributeFontSize 10
+}
+entity "rol" as rol {
+  * id_rol : TINYINT <<PK>>
+  --
+  * nombre : VARCHAR(20) <<UQ>>
+  * descripcion : VARCHAR(150)
+}
+entity "usuario" as usuario {
+  * id_usuario : INT <<PK>>
+  --
+  * nombre_completo : VARCHAR(100)
+  * nombre_usuario : VARCHAR(30) <<UQ>>
+  * contrasena_hash : VARCHAR(255)
+  * id_rol : TINYINT <<FK>>
+  * activo : TINYINT(1)
+  * intentos_fallidos : TINYINT
+  bloqueado_hasta : DATETIME
+  * fecha_creacion : DATETIME
+  id_creado_por : INT <<FK>>
+}
+entity "sesion" as sesion {
+  * id_sesion : BIGINT <<PK>>
+  --
+  * id_usuario : INT <<FK>>
+  * token_hash : CHAR(64) <<UQ>>
+  * fecha_inicio : DATETIME
+  * fecha_expiracion : DATETIME
+  * revocada : TINYINT(1)
+}
+entity "unidad_medida" as unidad {
+  * id_unidad : TINYINT <<PK>>
+  --
+  * codigo : VARCHAR(5) <<UQ>>
+  * nombre : VARCHAR(30) <<UQ>>
+  * permite_decimales : TINYINT(1)
+}
+entity "maquina" as maquina {
+  * id_maquina : SMALLINT <<PK>>
+  --
+  * codigo : VARCHAR(10) <<UQ>>
+  * nombre : VARCHAR(60)
+  * activa : TINYINT(1)
+}
+entity "ubicacion" as ubicacion {
+  * id_ubicacion : SMALLINT <<PK>>
+  --
+  * estanteria : VARCHAR(10) <<UQ1>>
+  * cajon : VARCHAR(10) <<UQ1>>
+}
+entity "repuesto" as repuesto {
+  * id_repuesto : INT <<PK>>
+  --
+  * codigo : VARCHAR(20) <<UQ>>
+  * nombre : VARCHAR(100)
+  descripcion : VARCHAR(255)
+  * id_maquina : SMALLINT <<FK>>
+  * id_unidad : TINYINT <<FK>>
+  id_ubicacion : SMALLINT <<FK>>
+  * stock_actual : DECIMAL(10,2)
+  * stock_minimo : DECIMAL(10,2)
+  * activo : TINYINT(1)
+  * fecha_registro : DATETIME
+  * id_usuario_registro : INT <<FK>>
+}
+entity "movimiento" as movimiento {
+  * id_movimiento : BIGINT <<PK>>
+  --
+  * uuid_cliente : CHAR(36) <<UQ>>
+  * tipo : ENUM(entrada, salida, ajuste)
+  * id_repuesto : INT <<FK>>
+  * cantidad : DECIMAL(10,2)
+  * stock_resultante : DECIMAL(10,2)
+  id_maquina_destino : SMALLINT <<FK>>
+  * id_usuario_registra : INT <<FK>>
+  id_usuario_recibe : INT <<FK>>
+  motivo : VARCHAR(255)
+  observacion : VARCHAR(255)
+  * fecha_movimiento : DATETIME
+  * fecha_sincronizacion : DATETIME
+}
+entity "conflicto_sincronizacion" as conflicto {
+  * id_conflicto : BIGINT <<PK>>
+  --
+  * uuid_cliente : CHAR(36) <<UQ>>
+  * id_usuario : INT <<FK>>
+  * id_repuesto : INT <<FK>>
+  * tipo : ENUM
+  * cantidad : DECIMAL(10,2)
+  * fecha_movimiento : DATETIME
+  * causa : VARCHAR(255)
+  * estado : ENUM(pendiente, resuelto)
+}
+entity "proveedor" as proveedor {
+  * id_proveedor : SMALLINT <<PK>>
+  --
+  * nombre : VARCHAR(100) <<UQ>>
+  nombre_contacto : VARCHAR(100)
+  telefono : VARCHAR(20)
+  correo : VARCHAR(100)
+  * activo : TINYINT(1)
+}
+entity "repuesto_proveedor" as rp {
+  * id_repuesto : INT <<PK, FK>>
+  * id_proveedor : SMALLINT <<PK, FK>>
+  --
+  * tiempo_reposicion_dias : SMALLINT
+  * es_principal : TINYINT(1)
+  principal_de : INT <<generada, UQ>>
+}
+entity "alerta" as alerta {
+  * id_alerta : INT <<PK>>
+  --
+  * id_repuesto : INT <<FK>>
+  * tipo : ENUM(stock_minimo, preventiva)
+  * estado : ENUM(activa, atendida)
+  * stock_al_generar : DECIMAL(10,2)
+  cobertura_dias : DECIMAL(8,1)
+  cantidad_sugerida : DECIMAL(10,2)
+  * fecha_generacion : DATETIME
+  fecha_atencion : DATETIME
+  activa_de : INT <<generada, UQ1>>
+}
+entity "solicitud" as solicitud {
+  * id_solicitud : INT <<PK>>
+  --
+  * id_repuesto : INT <<FK>>
+  id_proveedor : SMALLINT <<FK>>
+  * cantidad : DECIMAL(10,2)
+  * estado : ENUM(pendiente, enviada,\nrecibida, anulada)
+  * id_usuario_solicita : INT <<FK>>
+  * fecha_solicitud : DATETIME
+  fecha_envio : DATETIME
+  fecha_recepcion : DATETIME
+  abierta_de : INT <<generada, UQ>>
+}
+entity "parametro" as parametro {
+  * clave : VARCHAR(40) <<PK>>
+  --
+  * valor : DECIMAL(10,2)
+  * descripcion : VARCHAR(200)
+}
+
+rol ||--o{ usuario
+usuario |o--o{ usuario : crea
+usuario ||--o{ sesion
+usuario ||--o{ repuesto : registra
+maquina ||--o{ repuesto
+unidad ||--o{ repuesto
+ubicacion |o--o{ repuesto
+repuesto ||--o{ movimiento
+maquina |o--o{ movimiento : destino
+usuario ||--o{ movimiento : registra
+usuario |o--o{ movimiento : recibe
+repuesto ||--o{ conflicto
+usuario ||--o{ conflicto
+repuesto ||--o{ rp
+proveedor ||--o{ rp
+repuesto ||--o{ alerta
+repuesto ||--o{ solicitud
+proveedor |o--o{ solicitud
+usuario ||--o{ solicitud : solicita
+@enduml
