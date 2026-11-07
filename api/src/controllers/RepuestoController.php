@@ -41,31 +41,57 @@ class RepuestoController
         Response::ok($r);
     }
 
-    // POST /v1/repuestos  (HU-02)
+        // POST /v1/repuestos  (HU-02, HU-08)
     public static function crear(): void
     {
         $u = Auth::require(['almacen']);
         $in = Response::input();
-        $codigo = strtoupper(trim($in['codigo'] ?? ''));
-        $nombre = trim($in['nombre'] ?? '');
-        if ($codigo === '' || $codigo === 'NA' || $nombre === ''
-            || empty($in['id_maquina']) || empty($in['id_unidad'])) {
+        $codigo      = strtoupper(trim((string)($in['codigo'] ?? '')));
+        $nombre      = trim((string)($in['nombre'] ?? ''));
+        $descripcion = trim((string)($in['descripcion'] ?? ''));
+        $idMaquina   = (int)($in['id_maquina'] ?? 0);
+        $idUnidad    = (int)($in['id_unidad'] ?? 0);
+        $idUbicacion = empty($in['id_ubicacion']) ? null : (int)$in['id_ubicacion'];
+        $stockMinimo = $in['stock_minimo'] ?? 0;
+
+        if ($codigo === '' || $codigo === 'NA' || $nombre === '' || $idMaquina <= 0 || $idUnidad <= 0) {
             Response::error(400, 'DATOS_INVALIDOS', 'Código (distinto de NA), nombre, máquina y unidad son obligatorios.');
         }
+        if (mb_strlen($codigo) > 20 || mb_strlen($nombre) > 100 || mb_strlen($descripcion) > 255) {
+            Response::error(400, 'DATOS_INVALIDOS', 'El código admite 20 caracteres, el nombre 100 y la descripción 255.');
+        }
+        if (!is_numeric($stockMinimo) || $stockMinimo < 0) {
+            Response::error(400, 'DATOS_INVALIDOS', 'El stock mínimo debe ser un número mayor o igual a cero.');
+        }
+
+        $db = Database::get();
+        $st = $db->prepare('SELECT permite_decimales FROM unidad_medida WHERE id_unidad = ?');
+        $st->execute([$idUnidad]);
+        $unidad = $st->fetch();
+        if (!$unidad) {
+            Response::error(400, 'DATOS_INVALIDOS', 'La unidad de medida no existe.');
+        }
+        if (!$unidad['permite_decimales'] && floor((float)$stockMinimo) != (float)$stockMinimo) {
+            Response::error(400, 'DATOS_INVALIDOS', 'La unidad seleccionada no admite decimales.');
+        }
+
         try {
-            $st = Database::get()->prepare(
+            $st = $db->prepare(
                 'INSERT INTO repuesto (codigo, nombre, descripcion, id_maquina, id_unidad, id_ubicacion,
                                        stock_minimo, id_usuario_registro)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
-            $st->execute([$codigo, $nombre, $in['descripcion'] ?? null, (int)$in['id_maquina'],
-                          (int)$in['id_unidad'], $in['id_ubicacion'] ?? null,
-                          (float)($in['stock_minimo'] ?? 0), $u['id_usuario']]);
+            $st->execute([$codigo, $nombre, $descripcion === '' ? null : $descripcion, $idMaquina,
+                          $idUnidad, $idUbicacion, (float)$stockMinimo, $u['id_usuario']]);
         } catch (PDOException $e) {
-            if (($e->errorInfo[1] ?? 0) == 1062) {
+            $codigoError = $e->errorInfo[1] ?? 0;
+            if ($codigoError == 1062) {
                 Response::error(409, 'CODIGO_DUPLICADO', "Ya existe un repuesto con el código $codigo.");
+            }
+            if ($codigoError == 1452) {
+                Response::error(400, 'DATOS_INVALIDOS', 'La máquina o la ubicación seleccionada no existe.');
             }
             throw $e;
         }
-        Response::ok(['id_repuesto' => (int)Database::get()->lastInsertId()], 201);
+        Response::ok(['id_repuesto' => (int)$db->lastInsertId()], 201);
     }
 }
