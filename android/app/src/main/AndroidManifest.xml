@@ -29,6 +29,7 @@
         <activity android:name=".ui.usuarios.UsuariosActivity" />
         <activity android:name=".ui.movimiento.RegistroSalidaActivity" />
         <activity android:name=".ui.movimiento.RegistroEntradaActivity" />
+        <activity android:name=".ui.alertas.AlertasActivity" />
     </application>
 
 </manifest>

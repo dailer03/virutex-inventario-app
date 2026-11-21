@@ -10,6 +10,7 @@ import com.virutex.inventario.data.remote.dto.NuevoRepuesto;
 import com.virutex.inventario.data.remote.dto.Repuesto;
 import com.virutex.inventario.data.remote.dto.RepuestoCreado;
 import com.virutex.inventario.data.remote.dto.RepuestoDetalle;
+import com.virutex.inventario.data.remote.dto.Alerta;
 
 import java.util.List;
 
@@ -38,6 +39,10 @@ public class RepuestoRepository {
 
     public void detalle(int id, Resultado<RepuestoDetalle> resultado) {
         enviar(api.detalleRepuesto(id), resultado);
+    }
+
+    public void alertas(String tipo, Resultado<List<Alerta>> resultado) {
+        enviar(api.alertas(tipo), resultado);
     }
 
     /** Ejecuta la llamada y entrega los datos o el mensaje de error de la API. */

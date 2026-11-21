@@ -16,6 +16,7 @@ import retrofit2.http.PATCH;
 import com.virutex.inventario.data.remote.dto.MovimientoRegistrado;
 import com.virutex.inventario.data.remote.dto.NuevoMovimiento;
 import com.virutex.inventario.data.remote.dto.Tecnico;
+import com.virutex.inventario.data.remote.dto.Alerta;
 
 import java.util.List;
 
@@ -68,4 +69,7 @@ public interface ApiService {
 
     @GET("v1/tecnicos")
     Call<ApiResponse<List<Tecnico>>> tecnicos();
+
+    @GET("v1/alertas")
+    Call<ApiResponse<List<Alerta>>> alertas(@Query("tipo") String tipo);
 }
