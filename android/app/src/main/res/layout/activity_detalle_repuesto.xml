@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/tvMensaje"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Cargando…"
+            android:textColor="#B00020" />
+
+        <LinearLayout
+            android:id="@+id/contenido"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView android:id="@+id/tvNombre" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:textSize="20sp" android:textStyle="bold" />
+            <TextView android:id="@+id/tvCodigo" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginBottom="16dp" />
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Stock actual" android:textSize="12sp" />
+            <TextView android:id="@+id/tvStockActual" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:textSize="18sp" android:textStyle="bold" />
+            <TextView android:id="@+id/tvEstado" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:layout_marginBottom="12dp" android:textStyle="bold" />
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Stock mínimo" android:textSize="12sp" />
+            <TextView android:id="@+id/tvStockMinimo" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:layout_marginBottom="12dp" />
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Máquina" android:textSize="12sp" />
+            <TextView android:id="@+id/tvMaquina" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:layout_marginBottom="12dp" />
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Ubicación" android:textSize="12sp" />
+            <TextView android:id="@+id/tvUbicacion" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:layout_marginBottom="12dp" />
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Descripción" android:textSize="12sp" />
+            <TextView android:id="@+id/tvDescripcion" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginBottom="12dp" />
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Proveedores" android:textSize="12sp" />
+            <TextView android:id="@+id/tvProveedores" android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

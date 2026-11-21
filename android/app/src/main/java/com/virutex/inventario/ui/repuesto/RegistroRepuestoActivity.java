@@ -126,6 +126,9 @@ public class RegistroRepuestoActivity extends AppCompatActivity {
             @Override public void exito(RepuestoCreado datos) {
                 Toast.makeText(RegistroRepuestoActivity.this,
                         "Repuesto " + codigo + " registrado.", Toast.LENGTH_LONG).show();
+                Intent i = new Intent(RegistroRepuestoActivity.this, DetalleRepuestoActivity.class);
+                i.putExtra(DetalleRepuestoActivity.EXTRA_ID, datos.idRepuesto);
+                startActivity(i);
                 finish();
             }
             @Override public void error(int codigoHttp, String mensaje) {

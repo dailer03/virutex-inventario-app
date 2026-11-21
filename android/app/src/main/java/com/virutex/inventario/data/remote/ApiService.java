@@ -7,6 +7,8 @@ import com.virutex.inventario.data.remote.dto.Repuesto;
 import com.virutex.inventario.data.remote.dto.Catalogos;
 import com.virutex.inventario.data.remote.dto.NuevoRepuesto;
 import com.virutex.inventario.data.remote.dto.RepuestoCreado;
+import com.virutex.inventario.data.remote.dto.RepuestoDetalle;
+import retrofit2.http.Path;
 
 import java.util.List;
 
@@ -15,6 +17,7 @@ import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Query;
+
 
 
 
@@ -38,6 +41,7 @@ public interface ApiService {
     Call<ApiResponse<RepuestoCreado>> crearRepuesto(@Body NuevoRepuesto cuerpo);
 
 
-
+    @GET("v1/repuestos/{id}")
+    Call<ApiResponse<RepuestoDetalle>> detalleRepuesto(@Path("id") int id);
 
 }

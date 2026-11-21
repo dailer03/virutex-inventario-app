@@ -25,6 +25,7 @@
         <activity android:name=".ui.menu.MenuActivity" />
         <activity android:name=".ui.inventario.InventarioActivity" />
         <activity android:name=".ui.repuesto.RegistroRepuestoActivity" />
+        <activity android:name=".ui.repuesto.DetalleRepuestoActivity" />
     </application>
 
 </manifest>

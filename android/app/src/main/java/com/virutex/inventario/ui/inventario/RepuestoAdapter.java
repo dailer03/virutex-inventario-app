@@ -17,7 +17,18 @@ import java.util.List;
 import java.util.Locale;
 
 public class RepuestoAdapter extends RecyclerView.Adapter<RepuestoAdapter.Fila> {
+
+    /** Acción al tocar un repuesto de la lista. */
+    public interface AlTocar {
+        void abrir(Repuesto repuesto);
+    }
+
     private final List<Repuesto> datos = new ArrayList<>();
+    private final AlTocar alTocar;
+
+    public RepuestoAdapter(AlTocar alTocar) {
+        this.alTocar = alTocar;
+    }
 
     public void mostrar(List<Repuesto> nuevos) {
         datos.clear();
@@ -45,6 +56,7 @@ public class RepuestoAdapter extends RecyclerView.Adapter<RepuestoAdapter.Fila> 
                 : "bajo".equals(r.estadoStock) ? Color.parseColor("#B86E00")
                 : Color.parseColor("#1E7A4C");
         f.estado.setTextColor(color);
+        f.itemView.setOnClickListener(v -> alTocar.abrir(r));
     }
 
     @Override
