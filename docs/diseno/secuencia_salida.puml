@@ -1,0 +1,38 @@
+@startuml
+!include estilo.iuml
+skinparam sequenceMessageAlign left
+skinparam ParticipantBackgroundColor #EAF1F8
+skinparam ParticipantBorderColor #1F4E79
+skinparam SequenceLifeLineBorderColor #7F7F7F
+actor "Técnico" as T
+participant "App Android" as A
+database "Room\n(cola local)" as R
+participant "API REST" as P
+database "MariaDB" as D
+
+T -> A : Registra salida\n(repuesto, cantidad, máquina)
+A -> A : Genera uuid_cliente\ny valida campos
+alt Hay conexión
+  A -> P : POST /movimientos/salidas
+else Sin conexión (RNF-06)
+  A -> R : Guarda operación pendiente
+  A --> T : "Guardado; se enviará\nal recuperar la red"
+  ... Recupera la conexión ...
+  A -> R : Lee operaciones pendientes
+  A -> P : POST /movimientos/sincronizar (lote)
+end
+P -> P : Verifica token y rol
+P -> D : INSERT movimiento
+D -> D : Disparador: bloquea repuesto,\nvalida stock y lo actualiza
+alt Stock suficiente
+  D -> D : Disparador de repuesto:\ngenera o atiende alerta (HU-09)
+  P -> D : CALL sp_actualizar_alertas_preventivas
+  P --> A : 201 Creado (stock resultante)
+  A -> R : Elimina la operación de la cola
+else Stock insuficiente
+  D --> P : Error "Stock insuficiente"
+  P -> D : INSERT conflicto_sincronizacion\n(solo si venía de la cola)
+  P --> A : 409 Conflicto
+  A --> T : Informa el stock disponible
+end
+@enduml

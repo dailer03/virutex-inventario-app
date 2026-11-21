@@ -1,0 +1,10 @@
+# Configuración con contraseñas (nunca al repositorio)
+api/config/config.local.php
+
+# Android Studio
+android/local.properties
+android/.gradle/
+android/.idea/
+android/build/
+android/app/build/
+*.apk

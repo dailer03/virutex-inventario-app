@@ -1,0 +1,26 @@
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam shadowing false
+skinparam roundCorner 6
+skinparam ArrowColor #404040
+skinparam componentStyle rectangle
+skinparam rectangle {
+  BorderColor #1F4E79
+  BackgroundColor #FFFFFF
+}
+skinparam component {
+  BorderColor #1F4E79
+  BackgroundColor #EAF1F8
+}
+skinparam database {
+  BorderColor #1F4E79
+  BackgroundColor #EAF1F8
+}
+skinparam node {
+  BorderColor #1F4E79
+  BackgroundColor #FFFFFF
+}
+skinparam package {
+  BorderColor #7F7F7F
+  BackgroundColor #FAFAFA
+}

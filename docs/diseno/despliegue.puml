@@ -1,0 +1,28 @@
+@startuml
+!include estilo.iuml
+left to right direction
+node "Teléfono Android 8.0 o superior\n(técnico, almacén, supervisor)" as CEL {
+  artifact "app-inventario.apk" as APK
+  database "Room (SQLite)\ncola sin conexión" as LOC
+}
+node "Servidor del área (equipo de la planta)\nXAMPP" as SRV {
+  node "Apache 2.4 + PHP 8" as AP {
+    artifact "api-inventario\n(/api/v1)" as API
+  }
+  node "MariaDB 10.4+" as MDB {
+    database "virutex_inventario" as DB
+  }
+  artifact "phpMyAdmin\n(acceso solo local)" as PMA
+}
+node "GitHub (repositorio privado)" as GH {
+  artifact "código, scripts SQL\ny documentación" as REPO
+}
+cloud "Red Wi-Fi interna\nde la planta" as WIFI
+
+APK -- LOC
+APK -- WIFI : HTTPS
+WIFI -- API : HTTPS (puerto 443)
+API -- DB : TCP 3306\n(solo localhost)
+PMA -- DB
+GH ..> SRV : versiones publicadas\nal cierre de cada sprint
+@enduml

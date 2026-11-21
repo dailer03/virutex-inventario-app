@@ -1,0 +1,202 @@
+REGISTRO DE EJECUCIÓN DE LAS PRUEBAS DE LA BASE DE DATOS
+Proyecto: Aplicación móvil de inventario de repuestos críticos - Virutex Ilko
+Sprint 1 · Tarea T1-14
+
+Entorno de esta ejecución: servidor compatible con MySQL (Dolt 2.4.2) usado para validar
+los scripts antes de instalarlos en XAMPP. Debe repetirse en XAMPP (MariaDB) y guardar las
+capturas de phpMyAdmin como evidencia oficial (carpeta evidencias/, nombre 2026-10-XX_S1_bd).
+
+Diferencias conocidas del motor de prueba frente a MariaDB/MySQL:
+- No admite privilegios por columna (GRANT UPDATE (columnas)); en C-15 faltan esas líneas.
+- EXPLAIN (C-14) no muestra el índice usado; en MariaDB debe aparecer uq_repuesto_codigo.
+- Un CALL dentro de una transacción explícita deshace la transacción; por eso F-01 se
+  ejecutó sin START TRANSACTION. En MariaDB el archivo 06 funciona tal como está.
+
+============================== 05_consultas_comprobacion.sql
+
+=== C-01. Registros cargados por tabla.
+   SQL: SELECT 'rol' AS tabla, COUNT(*) AS registros FROM rol UNION ALL SELECT 'usuario', COUNT(*) FROM usuario UNION 
+   tabla | registros
+   rol | 3
+   usuario | 4
+   unidad_medida | 8
+   maquina | 6
+   ubicacion | 8
+   repuesto | 10
+   proveedor | 3
+   repuesto_proveedor | 9
+   movimiento | 51
+   alerta | 5
+   solicitud | 2
+   conflicto_sincronizacion | 1
+   parametro | 6
+
+=== C-02. El stock de cada repuesto coincide con la suma de sus movimientos (RNF-04).
+   SQL: SELECT r.codigo, r.stock_actual, SUM(CASE WHEN mv.tipo = 'salida' THEN -mv.cantidad ELSE mv.cantidad END) AS s
+   (0 filas)
+
+=== C-03. Ningún movimiento dejó el stock negativo.
+   SQL: SELECT id_movimiento, stock_resultante FROM movimiento WHERE stock_resultante < 0
+   (0 filas)
+
+=== C-04. Consulta de inventario por código, nombre o máquina (HU-03).
+   SQL: SELECT codigo, nombre, maquina_codigo, ubicacion, stock_actual, unidad, estado_stock FROM v_inventario WHERE c
+   codigo | nombre | maquina_codigo | ubicacion | stock_actual | unidad | estado_stock
+   SIM-0001 | Fusible cerámico 32 A | INS-01 | A-01 | 4.00 | UND | bajo
+   SIM-0004 | Malla mesh #30 | INS-01 | B-01 | 3.70 | M | normal
+
+=== C-05. Historial de un repuesto por rango de fechas (HU-07).
+   SQL: SELECT fecha_movimiento, tipo, cantidad, stock_resultante, maquina_destino, registrado_por, recibido_por FROM 
+   fecha_movimiento | tipo | cantidad | stock_resultante | maquina_destino | registrado_por | recibido_por
+   2026-09-12 23:06:17 | salida | 2.00 | 10.00 | INS-01 | tec.prueba1 | NULL
+   2026-09-19 23:06:17 | salida | 2.00 | 8.00 | INS-01 | tec.prueba1 | NULL
+   2026-09-26 23:06:17 | salida | 2.00 | 6.00 | INS-01 | tec.prueba1 | NULL
+   2026-10-03 23:06:17 | salida | 2.00 | 4.00 | INS-01 | tec.prueba1 | NULL
+
+=== C-06. Alertas activas (HU-09 y HU-14).
+   SQL: SELECT tipo, codigo, repuesto, stock_actual, stock_minimo, cobertura_dias, cantidad_sugerida FROM v_alertas_ac
+   tipo | codigo | repuesto | stock_actual | stock_minimo | cobertura_dias | cantidad_sugerida
+   stock_minimo | SIM-0001 | Fusible cerámico 32 A | 4.00 | 4.00 | NULL | NULL
+   stock_minimo | SIM-0003 | Cuchilla de corte | 0.00 | 2.00 | NULL | NULL
+   stock_minimo | SIM-0007 | Kit de sellos neumáticos | 3.00 | 3.00 | NULL | NULL
+   preventiva | SIM-0001 | Fusible cerámico 32 A | 4.00 | 4.00 | 13.8 | 14.00
+   preventiva | SIM-0003 | Cuchilla de corte | 0.00 | 2.00 | 0.0 | 10.00
+
+=== C-07. Estimación de reposición (HU-13 y HU-15).
+   SQL: SELECT codigo, num_salidas, consumo_diario, tiempo_reposicion_dias, estimable, cobertura_dias, cantidad_sugeri
+   codigo | num_salidas | consumo_diario | tiempo_reposicion_dias | estimable | cobertura_dias | cantidad_sugerida | requiere_alerta_preventiva
+   SIM-0001 | 13 | 0.2889 | 15 | 1 | 13.8 | 14 | 1
+   SIM-0002 | 6 | 0.0667 | 20 | 1 | 209.9 | 0 | 0
+   SIM-0003 | 4 | 0.1333 | 30 | 1 | 0 | 10 | 1
+   SIM-0004 | 4 | 0.07 | 20 | 1 | 52.9 | 1.8 | 0
+   SIM-0005 | 2 | 0.0444 | 10 | 0 | NULL | NULL | 0
+   SIM-0006 | 0 | 0 | NULL | 0 | NULL | NULL | 0
+   SIM-0007 | 3 | 0.0333 | 25 | 1 | 90.1 | 2 | 0
+   SIM-0008 | 3 | 0.0333 | 12 | 1 | 180.2 | 0 | 0
+   SIM-0009 | 0 | 0 | NULL | 0 | NULL | NULL | 0
+   SIM-0010 | 5 | 0.1389 | 10 | 1 | 54 | 3.06 | 0
+
+=== C-08. Informe de movimientos de los últimos 30 días (HU-12).
+   SQL: CALL sp_informe_movimientos(DATE_SUB(CURDATE(), INTERVAL 30 DAY), CURDATE())
+   codigo | nombre | entradas | salidas | ajustes | num_movimientos
+   SIM-0001 | Fusible cerámico 32 A | 0 | 8 | 0 | 4
+   SIM-0002 | Unión neumática 6 mm | 0 | 2 | 0 | 2
+   SIM-0003 | Cuchilla de corte | 0 | 6 | 0 | 2
+   SIM-0004 | Malla mesh #30 | 0 | 3.7 | 0 | 2
+   SIM-0005 | Tornillo bristol M6x20 | 0 | 2 | 0 | 1
+   SIM-0007 | Kit de sellos neumáticos | 0 | 2 | 0 | 2
+   SIM-0008 | Rodamiento 6204 | 0 | 1 | 0 | 1
+   SIM-0010 | Aceite hidráulico | 0 | 5 | 0 | 2
+
+=== C-09. Repuestos bajo el mínimo para el informe (HU-12).
+   SQL: SELECT codigo, nombre, stock_actual, stock_minimo, estado_stock FROM v_repuestos_bajo_minimo
+   codigo | nombre | stock_actual | stock_minimo | estado_stock
+   SIM-0001 | Fusible cerámico 32 A | 4.00 | 4.00 | bajo
+   SIM-0007 | Kit de sellos neumáticos | 3.00 | 3.00 | bajo
+   SIM-0003 | Cuchilla de corte | 0.00 | 2.00 | agotado
+
+=== C-10. Repuestos sin ubicación asignada (HU-04).
+   SQL: SELECT codigo, nombre FROM repuesto WHERE id_ubicacion IS NULL
+   codigo | nombre
+   SIM-0009 | Correa dentada
+
+=== C-11. Las contraseñas están cifradas con bcrypt (RNF-02).
+   SQL: SELECT nombre_usuario, LEFT(contrasena_hash, 4) AS prefijo, CHAR_LENGTH(contrasena_hash) AS longitud FROM usua
+   nombre_usuario | prefijo | longitud
+   sup.prueba | $2y$ | 60
+   alm.prueba | $2y$ | 60
+   tec.prueba1 | $2y$ | 60
+   tec.prueba2 | $2y$ | 60
+
+=== C-12. Cada repuesto con proveedores tiene exactamente un proveedor principal (HU-10).
+   SQL: SELECT id_repuesto, SUM(es_principal) AS principales FROM repuesto_proveedor GROUP BY id_repuesto HAVING SUM(e
+   (0 filas)
+
+=== C-13. Solicitudes abiertas (HU-11). Esperado: una pendiente para SIM-0003.
+   SQL: SELECT s.id_solicitud, r.codigo, s.cantidad, s.estado FROM solicitud s JOIN repuesto r ON r.id_repuesto = s.id
+   id_solicitud | codigo | cantidad | estado
+   2 | SIM-0003 | 6.00 | pendiente
+
+=== C-14. La búsqueda por código usa índice (RNF-05).
+   SQL: EXPLAIN SELECT * FROM repuesto WHERE codigo = 'SIM-0001'
+   id | select_type | table | partitions | type | possible_keys | key | key_len | ref | rows | filtered | Extra
+   1 | SELECT | NULL | NULL | NULL | NULL | NULL | NULL | NULL | 0 | 0 | 
+
+=== C-15. Privilegios del usuario de la API (RNF-02, RNF-04).
+   SQL: SHOW GRANTS FOR 'app_inventario'@'localhost'
+   Grants for app_inventario@localhost
+   GRANT USAGE ON *.* TO `app_inventario`@`localhost`
+   GRANT SELECT ON `virutex_inventario`.* TO `app_inventario`@`localhost`
+   GRANT INSERT, UPDATE ON `virutex_inventario`.`conflicto_sincronizacion` TO `app_inventario`@`localhost`
+   GRANT INSERT ON `virutex_inventario`.`movimiento` TO `app_inventario`@`localhost`
+   GRANT INSERT, UPDATE ON `virutex_inventario`.`proveedor` TO `app_inventario`@`localhost`
+   GRANT INSERT ON `virutex_inventario`.`repuesto` TO `app_inventario`@`localhost`
+   GRANT INSERT, UPDATE, DELETE ON `virutex_inventario`.`repuesto_proveedor` TO `app_inventario`@`localhost`
+   GRANT INSERT, UPDATE ON `virutex_inventario`.`sesion` TO `app_inventario`@`localhost`
+   GRANT INSERT, UPDATE ON `virutex_inventario`.`solicitud` TO `app_inventario`@`localhost`
+   GRANT INSERT ON `virutex_inventario`.`ubicacion` TO `app_inventario`@`localhost`
+   GRANT INSERT ON `virutex_inventario`.`usuario` TO `app_inventario`@`localhost`
+   GRANT EXECUTE ON PROCEDURE `virutex_inventario`.`sp_actualizar_alertas_preventivas` TO `app_inventario`@`localhost`
+   GRANT EXECUTE ON PROCEDURE `virutex_inventario`.`sp_informe_movimientos` TO `app_inventario`@`localhost`
+
+============================== 06_pruebas_restricciones.sql
+
+=== P-01 (HU-06, C-01): salida mayor que el stock. SIM-0003 tiene stock 0.
+   SQL: INSERT INTO movimiento (uuid_cliente, tipo, id_repuesto, cantidad, id_maquina_destino, id_usuario_registra, fe
+   RECHAZADO: Stock insuficiente para registrar el movimiento
+
+=== P-02 (HU-02, H-11): repuesto con código «NA». Esperado: violación de ck_repuesto_codigo.
+   SQL: INSERT INTO repuesto (codigo, nombre, id_maquina, id_unidad, id_usuario_registro) VALUES ('NA', 'Repuesto sin 
+   RECHAZADO: Check constraint "ck_repuesto_codigo" violated
+
+=== P-03 (HU-02): código duplicado. Esperado: entrada duplicada en uq_repuesto_codigo.
+   SQL: INSERT INTO repuesto (codigo, nombre, id_maquina, id_unidad, id_usuario_registro) VALUES ('SIM-0001', 'Duplica
+   RECHAZADO: duplicate unique key given: [SIM-0001]
+
+=== P-04 (HU-07, RNF-04): modificar un movimiento. Esperado: 'Los movimientos no se modifican; registre un ajuste'.
+   SQL: UPDATE movimiento SET cantidad = 99 WHERE id_movimiento = 1
+   RECHAZADO: Los movimientos no se modifican; registre un ajuste
+
+=== P-05 (HU-07, RNF-04): eliminar un movimiento. Esperado: 'Los movimientos no se eliminan; registre un ajuste'.
+   SQL: DELETE FROM movimiento WHERE id_movimiento = 1
+   RECHAZADO: Los movimientos no se eliminan; registre un ajuste
+
+=== P-06 (HU-06): salida sin máquina de destino. Esperado: violación de ck_mov_salida_destino.
+   SQL: INSERT INTO movimiento (uuid_cliente, tipo, id_repuesto, cantidad, id_usuario_registra, fecha_movimiento) VALU
+   RECHAZADO: Check constraint "ck_mov_salida_destino" violated
+
+=== P-07 (HU-05): entrada con cantidad cero. Esperado: violación de ck_mov_cantidad.
+   SQL: INSERT INTO movimiento (uuid_cliente, tipo, id_repuesto, cantidad, id_usuario_registra, fecha_movimiento) VALU
+   RECHAZADO: Check constraint "ck_mov_cantidad" violated
+
+=== P-08 (HU-07): ajuste sin motivo. Esperado: violación de ck_mov_ajuste_motivo.
+   SQL: INSERT INTO movimiento (uuid_cliente, tipo, id_repuesto, cantidad, id_usuario_registra, fecha_movimiento) VALU
+   RECHAZADO: Check constraint "ck_mov_ajuste_motivo" violated
+
+=== P-09 (RNF-06): sincronizar dos veces el mismo movimiento. Esperado: entrada duplicada en uq_movimiento_uuid.
+   SQL: INSERT INTO movimiento (uuid_cliente, tipo, id_repuesto, cantidad, id_usuario_registra, fecha_movimiento) SELE
+   RECHAZADO: duplicate unique key given: [54853866-ad73-47e4-bc76-aa7521feb637]
+
+=== P-10 (HU-08): stock mínimo negativo. Esperado: violación de ck_repuesto_minimo.
+   SQL: UPDATE repuesto SET stock_minimo = -1 WHERE id_repuesto = 2
+   RECHAZADO: Check constraint "ck_repuesto_minimo" violated
+
+=== P-11 (HU-11): segunda solicitud abierta para SIM-0003. Esperado: entrada duplicada en uq_sol_abierta.
+   SQL: INSERT INTO solicitud (id_repuesto, cantidad, id_usuario_solicita) VALUES (3, 4, 1)
+   RECHAZADO: duplicate unique key given: [3]
+
+=== P-12 (HU-10): segundo proveedor principal para SIM-0001. Esperado: entrada duplicada en uq_rp_principal.
+   SQL: UPDATE repuesto_proveedor SET es_principal = 1 WHERE id_repuesto = 1 AND id_proveedor = 2
+   RECHAZADO: duplicate unique key given: [1]
+
+=== P-13 (HU-16): eliminar un usuario con movimientos. Esperado: violación de clave foránea.
+   SQL: DELETE FROM usuario WHERE id_usuario = 3
+   RECHAZADO: cannot delete or update a parent row - Foreign key violation on fk: `fk_mov_recibe`, table: `movimiento`, referenced table: `usuario`, key: `[3]`
+
+
+=== F-01 (HU-05, HU-09, HU-14): entrada de 5 unidades de SIM-0003 y actualización de alertas
+   Resultado (ejecutado sin transacción y luego reinstalada la base):
+   codigo | stock_actual | tipo | estado
+   SIM-0003 | 5.00 | stock_minimo | atendida
+   SIM-0003 | 5.00 | preventiva | atendida
+   Cobertura recalculada: 37.5 días (> 30 días de reposición), por eso la preventiva se atiende.
