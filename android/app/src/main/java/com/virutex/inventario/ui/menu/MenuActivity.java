@@ -18,6 +18,7 @@ import com.virutex.inventario.util.SessionManager;
 import com.virutex.inventario.ui.usuarios.UsuariosActivity;
 import com.virutex.inventario.ui.movimiento.RegistroSalidaActivity;
 import com.virutex.inventario.ui.movimiento.RegistroEntradaActivity;
+import com.virutex.inventario.ui.alertas.AlertasActivity;
 
 /** P-02 Menú principal: muestra solo las funciones del rol (Tabla 34). */
 public class MenuActivity extends AppCompatActivity {
@@ -47,6 +48,9 @@ public class MenuActivity extends AppCompatActivity {
                 startActivity(new Intent(this, RegistroRepuestoActivity.class)));
 
         mostrarSi(R.id.btnAlertas, rol.equals("almacen") || rol.equals("supervisor"), "Sprint 4");
+
+        findViewById(R.id.btnAlertas).setOnClickListener(v ->
+                startActivity(new Intent(this, AlertasActivity.class)));
 
         mostrarSi(R.id.btnUsuarios, rol.equals("supervisor"), "Sprint 2");
         findViewById(R.id.btnUsuarios).setOnClickListener(v ->

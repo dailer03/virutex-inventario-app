@@ -18,6 +18,7 @@ $rutas = [
     ['GET',   '#^/v1/tecnicos$#',               [UsuarioController::class, 'tecnicos']],
     ['POST',  '#^/v1/movimientos/entradas$#',   [MovimientoController::class, 'entrada']],
     ['POST',  '#^/v1/movimientos/salidas$#',    [MovimientoController::class, 'salida']],
+        ['GET',   '#^/v1/alertas$#',                [AlertaController::class, 'listar']],
 ];
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
