@@ -12,6 +12,9 @@ $rutas = [
     ['GET',  '#^/v1/repuestos/(\d+)$#',        [RepuestoController::class, 'detalle']],
     ['POST', '#^/v1/repuestos$#',              [RepuestoController::class, 'crear']],
     ['GET',  '#^/v1/catalogos$#',              [CatalogoController::class, 'listar']],
+    ['GET',   '#^/v1/usuarios$#',               [UsuarioController::class, 'listar']],
+    ['POST',  '#^/v1/usuarios$#',               [UsuarioController::class, 'crear']],
+    ['PATCH', '#^/v1/usuarios/(\d+)/estado$#',  [UsuarioController::class, 'cambiarEstado']],
     ['POST', '#^/v1/movimientos/entradas$#',   [MovimientoController::class, 'entrada']],
     ['POST', '#^/v1/movimientos/salidas$#',    [MovimientoController::class, 'salida']],
 ];

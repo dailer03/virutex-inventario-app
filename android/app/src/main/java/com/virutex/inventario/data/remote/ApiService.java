@@ -9,6 +9,10 @@ import com.virutex.inventario.data.remote.dto.NuevoRepuesto;
 import com.virutex.inventario.data.remote.dto.RepuestoCreado;
 import com.virutex.inventario.data.remote.dto.RepuestoDetalle;
 import retrofit2.http.Path;
+import com.virutex.inventario.data.remote.dto.EstadoUsuario;
+import com.virutex.inventario.data.remote.dto.NuevoUsuario;
+import com.virutex.inventario.data.remote.dto.Usuario;
+import retrofit2.http.PATCH;
 
 import java.util.List;
 
@@ -43,5 +47,14 @@ public interface ApiService {
 
     @GET("v1/repuestos/{id}")
     Call<ApiResponse<RepuestoDetalle>> detalleRepuesto(@Path("id") int id);
+
+    @GET("v1/usuarios")
+    Call<ApiResponse<List<Usuario>>> usuarios();
+
+    @POST("v1/usuarios")
+    Call<ApiResponse<Object>> crearUsuario(@Body NuevoUsuario cuerpo);
+
+    @PATCH("v1/usuarios/{id}/estado")
+    Call<ApiResponse<Object>> cambiarEstadoUsuario(@Path("id") int id, @Body EstadoUsuario cuerpo);
 
 }
