@@ -16,6 +16,7 @@ import com.virutex.inventario.data.repository.RepuestoRepository;
 import com.virutex.inventario.data.repository.Resultado;
 import com.virutex.inventario.ui.login.LoginActivity;
 import com.virutex.inventario.util.SessionManager;
+import com.virutex.inventario.ui.repuesto.DetalleRepuestoActivity;
 
 import java.util.List;
 
@@ -30,7 +31,11 @@ public class InventarioActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_inventario);
         repo = new RepuestoRepository(this);
-        adaptador = new RepuestoAdapter();
+        adaptador = new RepuestoAdapter(r -> {
+            Intent i = new Intent(this, DetalleRepuestoActivity.class);
+            i.putExtra(DetalleRepuestoActivity.EXTRA_ID, r.idRepuesto);
+            startActivity(i);
+        });
         mensaje = findViewById(R.id.tvMensaje);
 
         RecyclerView lista = findViewById(R.id.rvRepuestos);
