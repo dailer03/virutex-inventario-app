@@ -16,6 +16,8 @@ import com.virutex.inventario.ui.login.LoginActivity;
 import com.virutex.inventario.ui.repuesto.RegistroRepuestoActivity;
 import com.virutex.inventario.util.SessionManager;
 import com.virutex.inventario.ui.usuarios.UsuariosActivity;
+import com.virutex.inventario.ui.movimiento.RegistroSalidaActivity;
+import com.virutex.inventario.ui.movimiento.RegistroEntradaActivity;
 
 /** P-02 Menú principal: muestra solo las funciones del rol (Tabla 34). */
 public class MenuActivity extends AppCompatActivity {
@@ -33,11 +35,19 @@ public class MenuActivity extends AppCompatActivity {
                 startActivity(new Intent(this, InventarioActivity.class)));
 
         mostrarSi(R.id.btnSalida, rol.equals("tecnico") || rol.equals("almacen"), "Sprint 3");
+        findViewById(R.id.btnSalida).setOnClickListener(v ->
+                startActivity(new Intent(this, RegistroSalidaActivity.class)));
+
         mostrarSi(R.id.btnEntrada, rol.equals("almacen"), "Sprint 3");
+        findViewById(R.id.btnEntrada).setOnClickListener(v ->
+                startActivity(new Intent(this, RegistroEntradaActivity.class)));
+
         mostrarSi(R.id.btnNuevoRepuesto, rol.equals("almacen"), "Sprint 2");
         findViewById(R.id.btnNuevoRepuesto).setOnClickListener(v ->
                 startActivity(new Intent(this, RegistroRepuestoActivity.class)));
+
         mostrarSi(R.id.btnAlertas, rol.equals("almacen") || rol.equals("supervisor"), "Sprint 4");
+
         mostrarSi(R.id.btnUsuarios, rol.equals("supervisor"), "Sprint 2");
         findViewById(R.id.btnUsuarios).setOnClickListener(v ->
                 startActivity(new Intent(this, UsuariosActivity.class)));

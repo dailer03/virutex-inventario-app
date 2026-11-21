@@ -1,4 +1,4 @@
-<?php
+ <?php
 class MovimientoController
 {
     // POST /v1/movimientos/entradas  (HU-05)
@@ -30,6 +30,20 @@ class MovimientoController
             Response::error(400, 'DATOS_INVALIDOS', 'Repuesto, cantidad mayor que cero e identificador son obligatorios.');
         }
         $db = Database::get();
+
+        // El repuesto debe existir y la cantidad respetar su unidad de medida (H-10)
+        $st = $db->prepare('SELECT u.permite_decimales, u.codigo AS unidad
+                              FROM repuesto r JOIN unidad_medida u ON u.id_unidad = r.id_unidad
+                             WHERE r.id_repuesto = ? AND r.activo = 1');
+        $st->execute([(int)$in['id_repuesto']]);
+        $rep = $st->fetch();
+        if (!$rep) {
+            Response::error(404, 'NO_EXISTE', 'El repuesto no existe o está inactivo.');
+        }
+        if (!$rep['permite_decimales'] && floor($cantidad) != $cantidad) {
+            Response::error(400, 'DATOS_INVALIDOS', "La unidad {$rep['unidad']} no admite decimales.");
+        }
+
         try {
             $db->prepare('INSERT INTO movimiento (uuid_cliente, tipo, id_repuesto, cantidad, id_maquina_destino,
                                                   id_usuario_registra, id_usuario_recibe, observacion, fecha_movimiento)
@@ -40,10 +54,12 @@ class MovimientoController
         } catch (PDOException $e) {
             $msg = $e->errorInfo[2] ?? $e->getMessage();
             if (($e->errorInfo[1] ?? 0) == 1062) {
-                // El mismo movimiento ya llegó antes (reenvío al sincronizar): no se duplica.
+                // El mismo movimiento ya llegó antes (reenvío): no se duplica.
                 $codigo = 200;
             } elseif (str_contains($msg, 'Stock insuficiente')) {
                 Response::error(409, 'STOCK_INSUFICIENTE', 'Stock insuficiente para registrar la salida.');
+            } elseif (($e->errorInfo[1] ?? 0) == 1452) {
+                Response::error(400, 'DATOS_INVALIDOS', 'La máquina o el usuario que recibe no existe.');
             } else {
                 throw $e;
             }

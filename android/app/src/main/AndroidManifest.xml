@@ -27,6 +27,8 @@
         <activity android:name=".ui.repuesto.RegistroRepuestoActivity" />
         <activity android:name=".ui.repuesto.DetalleRepuestoActivity" />
         <activity android:name=".ui.usuarios.UsuariosActivity" />
+        <activity android:name=".ui.movimiento.RegistroSalidaActivity" />
+        <activity android:name=".ui.movimiento.RegistroEntradaActivity" />
     </application>
 
 </manifest>

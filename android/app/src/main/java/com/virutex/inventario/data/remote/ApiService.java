@@ -13,6 +13,9 @@ import com.virutex.inventario.data.remote.dto.EstadoUsuario;
 import com.virutex.inventario.data.remote.dto.NuevoUsuario;
 import com.virutex.inventario.data.remote.dto.Usuario;
 import retrofit2.http.PATCH;
+import com.virutex.inventario.data.remote.dto.MovimientoRegistrado;
+import com.virutex.inventario.data.remote.dto.NuevoMovimiento;
+import com.virutex.inventario.data.remote.dto.Tecnico;
 
 import java.util.List;
 
@@ -57,4 +60,12 @@ public interface ApiService {
     @PATCH("v1/usuarios/{id}/estado")
     Call<ApiResponse<Object>> cambiarEstadoUsuario(@Path("id") int id, @Body EstadoUsuario cuerpo);
 
+    @POST("v1/movimientos/salidas")
+    Call<ApiResponse<MovimientoRegistrado>> registrarSalida(@Body NuevoMovimiento cuerpo);
+
+    @POST("v1/movimientos/entradas")
+    Call<ApiResponse<MovimientoRegistrado>> registrarEntrada(@Body NuevoMovimiento cuerpo);
+
+    @GET("v1/tecnicos")
+    Call<ApiResponse<List<Tecnico>>> tecnicos();
 }
