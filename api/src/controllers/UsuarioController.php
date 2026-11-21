@@ -16,6 +16,19 @@ class UsuarioController
         Response::ok($st->fetchAll());
     }
 
+        // GET /v1/tecnicos  (HU-06: el almacén elige quién recibe el repuesto)
+    public static function tecnicos(): void
+    {
+        Auth::require(['almacen']);
+        $st = Database::get()->prepare(
+            "SELECT u.id_usuario, u.nombre_completo
+               FROM usuario u JOIN rol r ON r.id_rol = u.id_rol
+              WHERE r.nombre = 'tecnico' AND u.activo = 1
+              ORDER BY u.nombre_completo");
+        $st->execute();
+        Response::ok($st->fetchAll());
+    }
+
     // POST /v1/usuarios  (HU-16: solo el supervisor crea usuarios y asigna el rol)
     public static function crear(): void
     {
